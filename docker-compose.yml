@@ -1,28 +1,13 @@
 services:
   mcxboxbroadcast:
-    container_name: mcxboxbroadcast-standalone
+    container_name: mcxboxbroadcast-standalone-dev
     build:
       context: .
-      dockerfile: ./bootstrap/standalone/Dockerfile
+      dockerfile: ./Dockerfile.dev
     restart: unless-stopped
     volumes:
-      - ./config:/opt/app/config
-    develop:
-      watch:
-        # Watch source code changes
-        - action: rebuild
-          path: ./core/src/
-        - action: rebuild
-          path: ./bootstrap/standalone/src/
-
-        # Watch build configuration changes
-        - action: rebuild
-          path: ./build.gradle.kts
-        - action: rebuild
-          path: ./bootstrap/standalone/build.gradle.kts
-        - action: rebuild
-          path: ./settings.gradle.kts
-        - action: rebuild
-          path: ./gradle.properties
-        - action: rebuild
-          path: ./build-logic/
+      - ./core:/opt/app/core
+      - ./bootstrap:/opt/app/bootstrap
+      - ./build.gradle.kts:/opt/app/build.gradle.kts
+      - ./settings.gradle.kts:/opt/app/settings.gradle.kts
+      - ./gradle.properties:/opt/app/gradle.properties
