@@ -258,5 +258,7 @@ gradle-app.setting
 
 run/
 
-cache/
-config/
+# Development-generated directories (created when running from project root)
+bootstrap/standalone/cache
+bootstrap/standalone/config.yml
+bootstrap/standalone/logs

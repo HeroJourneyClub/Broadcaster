@@ -1,81 +1,79 @@
-# MCXboxBroadcast Makefile (Multi-stage Docker Build)
 # Variables
-SERVICE_NAME = mcxboxbroadcast
+IMAGE_NAME = mcxboxbroadcast-standalone
 
 # Default target
 .PHONY: help
 help:
-	@echo "Available targets:"
-	@echo "  standalone-build         - Build the service"
-	@echo "  standalone-build-no-cache - Build the service without cache"
-	@echo "  standalone-up            - Build and start the service"
-	@echo "  standalone-up-interactive - Build and start service interactively"
-	@echo "  standalone-up-watch      - Start with file watching for development"
-	@echo "  standalone-down          - Stop and remove the service"
-	@echo "  standalone-restart       - Restart the service"
-	@echo "  standalone-logs          - Show logs from the service"
-	@	echo "  standalone-logs-follow   - Follow logs from the service"
-	@echo "  standalone-shell         - Open a shell in the container"
-	@echo "  standalone-clean         - Remove containers, networks, and volumes"
+	@echo "Development:"
+	@echo "  install                  - Install dependencies and prepare development environment"
+	@echo "  dev                      - Start development server with hot reload"
+	@echo "  build                    - Build the application"
+	@echo "  run                      - Run the application (after building)"
+	@echo "  clean                    - Clean build artifacts"
+	@echo "  test                     - Run tests"
+	@echo ""
+	@echo "Production:"
+	@echo "  docker-build             - Build production Docker image"
+	@echo "  docker-build-no-cache    - Build production image without cache"
+	@echo "  docker-run               - Run production container (one-time)"
 
-# Build the service
-.PHONY: standalone-build
-standalone-build:
-	@echo "Building MCXboxBroadcast service..."
-	docker compose build
+# =============================================================================
+# Development Targets
+# =============================================================================
 
-.PHONY: standalone-build-no-cache
-standalone-build-no-cache:
-	@echo "Building MCXboxBroadcast service without cache..."
-	docker compose build --no-cache
+.PHONY: install
+install:
+	@echo "Installing dependencies..."
+	./gradlew dependencies --no-daemon
+	@echo "Dependencies installed successfully!"
 
-# Start the service
-.PHONY: standalone-up
-standalone-up:
-	@echo "Building and starting MCXboxBroadcast service..."
-	docker compose up -d --build
+.PHONY: dev
+dev:
+	@echo "Starting development server with hot reload..."
+	./gradlew :bootstrap-standalone:run --continuous --no-daemon
 
-# Start interactively
-.PHONY: standalone-up-interactive
-standalone-up-interactive:
-	@echo "Building and starting MCXboxBroadcast service interactively..."
-	docker compose up --build
+.PHONY: build
+build:
+	@echo "Building application..."
+	./gradlew :bootstrap-standalone:shadowJar --no-daemon
 
-# Start with file watching for development
-.PHONY: standalone-up-watch
-standalone-up-watch:
-	@echo "Starting MCXboxBroadcast service with file watching..."
-	docker compose up --watch
+.PHONY: run
+run: build
+	@echo "Running application..."
+	java -jar ./bootstrap/standalone/build/libs/MCXboxBroadcastStandalone.jar
 
-# Stop and remove the service
-.PHONY: standalone-down
-standalone-down:
-	@echo "Stopping and removing MCXboxBroadcast service..."
-	docker compose down
+.PHONY: stop
+stop:
+	@echo "Stopping application..."
+	./gradlew --stop
 
-# Restart the service
-.PHONY: standalone-restart
-standalone-restart:
-	@echo "Restarting MCXboxBroadcast service..."
-	docker compose restart
+.PHONY: clean
+clean: stop
+	@echo "Cleaning build artifacts..."
+	./gradlew clean --no-daemon
 
-# Show logs
-.PHONY: standalone-logs
-standalone-logs:
-	docker compose logs
+.PHONY: clean-cache
+clean-cache:
+	@echo "Cleaning cache..."
+	rm -rf ./bootstrap/standalone/cache
 
-# Follow logs
-.PHONY: standalone-logs-follow
-standalone-logs-follow:
-	docker compose logs -f
+.PHONY: test
+test:
+	@echo "Running tests..."
+	./gradlew test --no-daemon
 
-# Open a shell in the container
-.PHONY: standalone-shell
-standalone-shell:
-	docker compose exec $(SERVICE_NAME) /bin/sh
+# =============================================================================
+# Docker Targets
+# =============================================================================
 
-# Clean up
-.PHONY: standalone-clean
-standalone-clean:
-	@echo "Cleaning up containers, networks, and volumes..."
-	docker compose down -v --remove-orphans
+.PHONY: docker-build
+docker-build:
+	docker build -t $(IMAGE_NAME):latest -f ./bootstrap/standalone/Dockerfile .
+
+.PHONY: docker-build-no-cache
+docker-build-no-cache:
+	docker build --no-cache -t $(IMAGE_NAME):latest -f ./bootstrap/standalone/Dockerfile .
+
+.PHONY: docker-run
+docker-run:
+	docker run --rm -it -v ./config:/opt/app/config $(IMAGE_NAME):latest
