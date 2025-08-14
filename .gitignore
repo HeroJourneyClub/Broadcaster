@@ -208,7 +208,6 @@ nbdist/
 .nb-gradle/
 
 ### VisualStudioCode ###
-.vscode/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
@@ -258,5 +257,6 @@ gradle-app.setting
 
 run/
 
-cache/
-config/
+bootstrap/standalone/config.yml
+bootstrap/standalone/logs/
+bootstrap/standalone/cache/
