@@ -260,3 +260,7 @@ run/
 bootstrap/standalone/config.yml
 bootstrap/standalone/logs/
 bootstrap/standalone/cache/
+
+.cursorrules
+.vscode/
+WARP.md
