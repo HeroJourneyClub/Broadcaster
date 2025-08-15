@@ -115,9 +115,11 @@ public class AuthManager {
 
             // If the device token has changed, run the callback
             String newDeviceTokenId =  xboxToken.getInitialXblSession().getXblDeviceToken().getDeviceId();
-            if (newDeviceTokenId != null && !newDeviceTokenId.equals(oldDeviceTokenId)) {
+            if (oldDeviceTokenId != null && newDeviceTokenId != null && !newDeviceTokenId.equals(oldDeviceTokenId)) {
                 logger.debug("Device token has changed");
-                onDeviceTokenRefreshCallback.run();
+                if (onDeviceTokenRefreshCallback != null) {
+                    onDeviceTokenRefreshCallback.run();
+                }
             }
 
         } catch (Exception e) {
