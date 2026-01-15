@@ -407,36 +407,6 @@ public abstract class SessionManagerCore {
         return connectionId;
     }
 
-    protected void waitForRTCConnection() throws InterruptedException, ExecutionException, TimeoutException {
-        logger.debug("Waiting for RTC connection");
-        this.rtcWebsocket.onOpenFuture().get(Constants.WEBSOCKET_CONNECTION_TIMEOUT.toSeconds(), TimeUnit.SECONDS);
-        logger.debug("RTC connection established");
-    }
-
-    protected String setupSession(String deviceId) {
-        logger.debug("Setting up session with device ID: " + deviceId);
-        String playfabTicket = this.authManager.getPlayfabSessionTicket();
-
-        HttpRequest request = HttpRequest.newBuilder(Constants.START_SESSION)
-                .header("Content-Type", "application/json")
-                .POST(HttpRequest.BodyPublishers.ofString(SessionStartBody.create(deviceId, playfabTicket)))
-                .build();
-
-        HttpResponse<String> response;
-        try {
-            response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            logger.debug("Session started with device ID: " + deviceId + " (" + response.statusCode() + ")");
-        } catch (IOException | InterruptedException e) {
-            throw new IllegalStateException("Unable to start session", e);
-        }
-
-        if (response.statusCode() != 200) {
-            logger.debug(response.body());
-            throw new IllegalStateException("Unable to start session!");
-        }
-        return Constants.GSON.fromJson(response.body(), SessionStartResponse.class).result().authorizationHeader();
-    }
-
     /**
      * Setup the RTA websocket connection
      */
@@ -447,13 +417,6 @@ public abstract class SessionManagerCore {
         }
         rtaWebsocket = new RtaWebsocketClient(this);
         rtaWebsocket.connect();
-    }
-
-    protected void setupRtcWebsocket(String token) {
-        logger.debug("Setting up RTC websocket");
-        if (rtcWebsocket != null) {
-            rtcWebsocket.close();
-        }
     }
 
     protected void setupNetherNet() {
